@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>PacMan</title>
+
+  <style media="screen">
+
+      body {
+        background-color: black;
+
+      }
+
+      canvas {
+        display: block;
+        margin: auto;
+        background-color: black;
+        border: 2px solid blue;
+      }
+
+    </style>
+</head>
+<body>
+
+
+  <canvas id="canvas" width="600" height="400"></canvas>
+
+
+  <script type="text/javascript">
+    var canvas = document.querySelector("canvas")
+    var ctx = canvas.getContext("2d");
+
+    var bodyEl = document.querySelector("body")
+    bodyEl.addEventListener("keydown", directionFun)
+
+    var sqrRad = 40
+
+    // NOTE: lager grid for spillet
+    // for (var i = 1; i < canvas.width / sqrRad; i++) {
+    //   ctx.beginPath();
+    //   ctx.moveTo(i * sqrRad, 0);
+    //   ctx.lineTo(i * sqrRad, canvas.height);
+    //   ctx.stroke();
+    // }
+    // for (var i = 1; i < canvas.width / sqrRad; i++) {
+    //   ctx.beginPath();
+    //   ctx.moveTo(0, i * sqrRad);
+    //   ctx.lineTo(canvas.width, i * sqrRad);
+    //   ctx.stroke();
+    // }
+
+    var animasjonId;
+    var direction = ""
+    var start = 0;
+
+    function directionFun() {
+
+      var knapp = event.keyCode
+      var check = 0
+
+      if (knapp == "38") {
+        direction = "up"
+        check++
+      } else if (knapp == "39") {
+        direction = "right"
+        check++
+      } else if (knapp == "37") {
+        direction = "left"
+        check++
+      } else if (knapp == "40") {
+        direction = "down"
+        check++
+      }
+
+
+      if (start == 0 && check == 1) {
+        animasjonId=setInterval(gameFun, 375)
+        start++;
+      }
+    }
+
+
+    class Hurdle {
+      constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+      }
+
+      draw() {
+        ctx.beginPath()
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.stroke();
+      }
+    }
+
+
+    class Player {
+      constructor(x, y) {
+        this.x = x
+        this.y = y
+      }
+
+      move(retning) {
+
+        if (retning == "up") {
+          this.y -= sqrRad
+        } else if (retning == "right") {
+          this.x += sqrRad
+        } else if (retning == "down") {
+          this.y += sqrRad
+        } else if (retning == "left") {
+          this.x -= sqrRad
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = "yellow"
+        ctx.fillRect(this.x+5, this.y+5, sqrRad-10, sqrRad-10);
+      }
+    }
+
+
+    class Treat {
+      constructor(x, y) {
+        this.x = x - sqrRad/2
+        this.y = y - sqrRad/2
+      }
+
+      draw() {
+        ctx.beginPath()
+        ctx.strokeStyle = "#ffb3b3";
+        ctx.lineWidth = 2
+        ctx.fillStyle="#ffb3b3"
+        ctx.arc(this.x, this.y, sqrRad / 10, 0, 2 * Math.PI);
+        ctx.stroke()
+        ctx.fill();
+      }
+    }
+
+
+    // NOTE: lager spiller objektet
+    var xStart = 7*sqrRad
+    var yStart = 2*sqrRad
+    var player = new Player(xStart, yStart)
+    ctx.fillStyle = "yellow"
+    ctx.fillRect(xStart+5, yStart+5, sqrRad-10, sqrRad-10);
+
+    // NOTE: lager hinder objektene
+    hurdleArr = []
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 2;
+    hurdleArr.push(new Hurdle(0, 40, 2 * sqrRad, sqrRad))
+    ctx.rect(0, 40, sqrRad * 2, sqrRad);
+    hurdleArr.push(new Hurdle(520, 40, 2 * sqrRad, sqrRad))
+    ctx.rect(520, 40, 2 * sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(0, 320, 2 * sqrRad, sqrRad))
+    ctx.rect(0, 320, 2 * sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(520, 320, 2 * sqrRad, sqrRad))
+    ctx.rect(520, 320, 2 * sqrRad, sqrRad);
+
+    hurdleArr.push(new Hurdle(sqrRad, 3 * sqrRad, sqrRad, 4 * sqrRad))
+    ctx.rect(sqrRad, 3 * sqrRad, sqrRad, 4 * sqrRad);
+    hurdleArr.push(new Hurdle(13 * sqrRad, 3 * sqrRad, sqrRad, 4 * sqrRad))
+    ctx.rect(13 * sqrRad, 3 * sqrRad, sqrRad, 4 * sqrRad);
+
+    hurdleArr.push(new Hurdle(3 * sqrRad, sqrRad, 4 * sqrRad, sqrRad))
+    ctx.rect(3 * sqrRad, sqrRad, 4 * sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(8 * sqrRad, sqrRad, 4 * sqrRad, sqrRad))
+    ctx.rect(8 * sqrRad, sqrRad, 4 * sqrRad, sqrRad);
+
+    hurdleArr.push(new Hurdle(3 * sqrRad, 3 * sqrRad, sqrRad, 2 * sqrRad))
+    ctx.rect(3 * sqrRad, 3 * sqrRad, sqrRad, 2 * sqrRad);
+    hurdleArr.push(new Hurdle(3 * sqrRad, 6 * sqrRad, sqrRad, sqrRad))
+    ctx.rect(3 * sqrRad, 6 * sqrRad, sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(11 * sqrRad, 3 * sqrRad, sqrRad, sqrRad))
+    ctx.rect(11 * sqrRad, 3 * sqrRad, sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(11 * sqrRad, 5 * sqrRad, sqrRad, 2 * sqrRad))
+    ctx.rect(11 * sqrRad, 5 * sqrRad, sqrRad, 2 * sqrRad);
+
+    hurdleArr.push(new Hurdle(5 * sqrRad, 3 * sqrRad, 5 * sqrRad, sqrRad))
+    ctx.rect(5 * sqrRad, 3 * sqrRad, 5 * sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(5 * sqrRad, 5 * sqrRad, 5 * sqrRad, 2 * sqrRad))
+    ctx.rect(5 * sqrRad, 5 * sqrRad, 5 * sqrRad, 2 * sqrRad);
+
+    hurdleArr.push(new Hurdle(5 * sqrRad, 8 * sqrRad, sqrRad, 2 * sqrRad))
+    ctx.rect(5 * sqrRad, 8 * sqrRad, sqrRad, 2 * sqrRad);
+    hurdleArr.push(new Hurdle(9 * sqrRad, 8 * sqrRad, sqrRad, 2 * sqrRad))
+    ctx.rect(9 * sqrRad, 8 * sqrRad, sqrRad, 2 * sqrRad);
+    hurdleArr.push(new Hurdle(7 * sqrRad, 8 * sqrRad, sqrRad, sqrRad))
+    ctx.rect(7 * sqrRad, 8 * sqrRad, sqrRad, sqrRad);
+
+    hurdleArr.push(new Hurdle(3 * sqrRad, 8 * sqrRad, sqrRad, sqrRad))
+    ctx.rect(3 * sqrRad, 8 * sqrRad, sqrRad, sqrRad);
+    hurdleArr.push(new Hurdle(11 * sqrRad, 8 * sqrRad, sqrRad, sqrRad))
+    ctx.rect(11 * sqrRad, 8 * sqrRad, sqrRad, sqrRad);
+
+    ctx.stroke();
+
+
+    var treatArr=[]
+    for (var i = 3; i < 14; i++) {
+      var treat= new Treat(sqrRad*i,40)
+      treatArr.push(treat)
+    }
+    for (var i = 2; i < 11; i++) {
+      var treat= new Treat(13*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 2; i < 11; i++) {
+      var treat= new Treat(3*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 3; i < 11; i++) {
+      var treat= new Treat(5*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 3; i < 11; i++) {
+      var treat= new Treat(11*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 3; i < 9; i++) {
+      var treat= new Treat(1*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 3; i < 9; i++) {
+      var treat= new Treat(15*sqrRad,sqrRad*i)
+      treatArr.push(treat)
+    }
+    for (var i = 6; i < 11; i++) {
+      var treat= new Treat(sqrRad*i,sqrRad*8)
+      treatArr.push(treat)
+    }
+    for (var i = 7; i < 10; i++) {
+      var treat= new Treat(sqrRad*i,sqrRad*10)
+      treatArr.push(treat)
+    }
+    treatArr.push(new Treat(2*sqrRad,3*sqrRad))
+    treatArr.push(new Treat(4*sqrRad,3*sqrRad))
+    treatArr.push(new Treat(12*sqrRad,3*sqrRad))
+    treatArr.push(new Treat(14*sqrRad,3*sqrRad))
+    treatArr.push(new Treat(2*sqrRad,8*sqrRad))
+    treatArr.push(new Treat(4*sqrRad,8*sqrRad))
+    treatArr.push(new Treat(12*sqrRad,8*sqrRad))
+    treatArr.push(new Treat(14*sqrRad,8*sqrRad))
+    treatArr.push(new Treat(12*sqrRad,10*sqrRad))
+    treatArr.push(new Treat(4*sqrRad,10*sqrRad))
+    treatArr.push(new Treat(7*sqrRad,9*sqrRad))
+    treatArr.push(new Treat(9*sqrRad,9*sqrRad))
+    treatArr.push(new Treat(4*sqrRad,6*sqrRad))
+    treatArr.push(new Treat(12*sqrRad,5*sqrRad))
+
+
+    for (var i = 0; i < treatArr.length; i++) {
+      treatArr[i].draw()
+    }
+
+
+    var poeng=0;
+    var stop = 0;
+    function gameFun() {
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // NOTE: tegner hindrene
+      for (var i = 0; i < hurdleArr.length; i++) {
+        hurdleArr[i].draw()
+      }
+
+      // NOTE: sjekker om spilleren treffer kanten av brettet
+      var check = 0;
+      if (direction == "up" && player.y - sqrRad < 0) {
+        check++;
+      } else if (direction == "right" && player.x + 2 * sqrRad > canvas.width) {
+        check++;
+      } else if (direction == "down" && player.y + 2 * sqrRad > canvas.height) {
+        check++;
+      } else if (direction == "left" && player.x - sqrRad < 0) {
+        check++;
+      }
+      // NOTE: sjekker om spilleren møter hindringer
+      for (var i = 0; i < hurdleArr.length; i++) {
+        if (direction == "up" && player.x >= hurdleArr[i].x && player.x < hurdleArr[i].x + hurdleArr[i].width && player.y - sqrRad >= hurdleArr[i].y && player.y - sqrRad < hurdleArr[i].y + hurdleArr[i].height) {
+          check++;
+        } else if (direction == "right" && player.y >= hurdleArr[i].y && player.y < hurdleArr[i].y + hurdleArr[i].height && player.x + sqrRad >= hurdleArr[i].x && player.x + sqrRad < hurdleArr[i].x + hurdleArr[i].width) {
+          check++;
+        } else if (direction == "down" && player.x >= hurdleArr[i].x && player.x < hurdleArr[i].x + hurdleArr[i].width && player.y + sqrRad >= hurdleArr[i].y && player.y + sqrRad < hurdleArr[i].y + hurdleArr[i].height) {
+          check++;
+        } else if (direction == "left" && player.y >= hurdleArr[i].y && player.y < hurdleArr[i].y + hurdleArr[i].height && player.x - sqrRad >= hurdleArr[i].x && player.x - sqrRad < hurdleArr[i].x + hurdleArr[i].width) {
+          check++;
+        }
+      }
+
+      if (check == 0) {
+        player.move(direction)
+        player.draw()
+
+        if (direction=="left" && player.x==0 && player.y==0) {
+          player.y=sqrRad*9
+          player.x=sqrRad*14
+        } else if (direction=="right" && player.x==14*sqrRad && player.y==0) {
+          player.y=sqrRad*9
+          player.x=0
+        } else if (direction=="left" && player.x==0 && player.y==9*sqrRad) {
+          player.y=sqrRad*0
+          player.x=sqrRad*14
+        } else if (direction=="right" && player.x==14*sqrRad && player.y==9*sqrRad) {
+          player.x=0
+          player.y=0
+        }
+
+      } else {
+        player.draw()
+      }
+
+      // NOTE: sjekker om man spiser en maten
+      for (var i = 0; i < treatArr.length; i++) {
+        if (player.x<treatArr[i].x && player.x+sqrRad>treatArr[i].x && player.y<treatArr[i].y && player.y+sqrRad>treatArr[i].y) {
+          treatArr[i]= new Treat(0,0)
+          poeng++;
+
+          if (poeng==treatArr.length) {
+            clearInterval(animasjonId);
+            console.log("nice");
+          }
+
+        } else {
+          treatArr[i].draw()
+        }
+      }
+    }
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Battleships</title>
+
+  <style media="screen">
+
+    .innpakning {
+        width: 1200px;
+        height: 600px;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        margin: auto;
+      }
+
+      .grid {
+        width: 501px;
+        height: 501px;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        margin: auto;
+      }
+
+      .gridCell {
+        width: 44px;
+        height: 40px;
+        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+
+      #retningId {
+        border: 1px solid black;
+        font-size: 30px;
+        padding: 15px;
+        margin: auto;
+        text-align: center;
+        width: 300px;
+        background: lightgrey;
+      }
+
+      #divAll {
+        width: 1500px;
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+
+    </style>
+</head>
+
+<body>
+
+  <div id="divAll">
+
+    <div class="innpakning">
+      <div id="enemyP1" class="grid"></div>
+      <div id="enemyP2" class="grid"></div>
+    </div>
+
+    <div class="innpakning">
+      <div id="enemyP1" class="grid"></div>
+      <div id="enemyP1" class="grid"></div>
+    </div>
+
+    <p id="retningId">Horisontalt</p>
+
+  </div>
+
+
+  <script type="text/javascript">
+    var bredde = 11;
+    var hoyde = 11;
+    var retning = true; // horisontalt
+
+    var retningKnapp = document.querySelector("#retningId")
+    retningKnapp.addEventListener("click", retningFun)
+
+    // lager griden
+    var gridElArr = document.querySelectorAll(".grid")
+    for (var i = 0; i < gridElArr.length; i++) {
+      for (var j = 0; j < bredde; j++) {
+        for (var k = 0; k < hoyde; k++) {
+          var divEl = document.createElement("div")
+
+          if (j == 0 && k == 0) {
+
+          } else if (j == 0 && k !== 0) {
+            divEl.innerHTML = String(k - 1)
+          } else if (k == 0 && j !== 0) {
+            divEl.innerHTML = String.fromCharCode(65 + j - 1)
+          } else {
+            divEl.innerHTML = String(k - 1) + String(j - 1)
+            divEl.classList.add(String(k - 1) + String(j - 1));
+
+            if (i == 0 || i == 2) {
+              divEl.classList.add("P1");
+            } else {
+              divEl.classList.add("P2");
+            }
+
+            if (i <= 1) {
+              divEl.addEventListener("click", battleshipsFun)
+              divEl.classList.add("fun")
+            } else {
+              divEl.addEventListener("click", battleshipsSetup)
+              divEl.classList.add("setup")
+            }
+          }
+
+          divEl.classList.add("gridCell")
+          gridElArr[i].appendChild(divEl)
+        }
+      }
+    }
+
+    var startP = 1
+    var battleShip1Arr = []
+    for (var i = 0; i < bredde - 1; i++) {
+      battleShipArrRow = []
+      for (var j = 0; j < hoyde - 1; j++) {
+        battleShipArrRow.push(0)
+      }
+      battleShip1Arr.push(battleShipArrRow)
+    }
+
+    var battleShip2Arr = []
+    for (var i = 0; i < bredde - 1; i++) {
+      battleShipArrRow = []
+      for (var j = 0; j < hoyde - 1; j++) {
+        battleShipArrRow.push(0)
+      }
+      battleShip2Arr.push(battleShipArrRow)
+    }
+
+    var battleshipsAll = document.querySelectorAll(".gridCell")
+
+    var battleships1Setup = [];
+    for (var i = 0; i < battleshipsAll.length; i++) {
+      if (battleshipsAll[i].className.substring(6, 11) == "setup" && battleshipsAll[i].className.substring(3, 5) == "P1") {
+        battleships1Setup.push(battleshipsAll[i]);
+      }
+    }
+
+    var battleships2Setup = [];
+    for (var i = 0; i < battleshipsAll.length; i++) {
+      if (battleshipsAll[i].className.substring(6, 11) == "setup" && battleshipsAll[i].className.substring(3, 5) == "P2") {
+        battleships2Setup.push(battleshipsAll[i]);
+      }
+    }
+
+    var battleships1Attack = [];
+    for (var i = 0; i < battleshipsAll.length; i++) {
+      if (battleshipsAll[i].className.substring(6, 9) == "fun" && battleshipsAll[i].className.substring(3, 5) == "P1") {
+        battleships1Attack.push(battleshipsAll[i]);
+      }
+    }
+
+    var battleships2Attack = [];
+    for (var i = 0; i < battleshipsAll.length; i++) {
+      if (battleshipsAll[i].className.substring(6, 9) == "fun" && battleshipsAll[i].className.substring(3, 5) == "P2") {
+        battleships2Attack.push(battleshipsAll[i]);
+      }
+    }
+
+
+    // funksjonen for å sette opp spillet
+    var countNum1 = 1 // tall slik at man ikke kan velge flere enn 5 skip
+    var countNum2 = 1
+    var stop1 = 0; // stopper funksjonen når man har gått over tallet
+    var stop2 = 0;
+
+    function battleshipsSetup(e) {
+      var target = e.target
+
+      var coordinate = target.className.substring(0, 2);
+      var player = target.className.substring(3, 5);
+      var coordC = Number(coordinate[0])
+      var coordR = Number(coordinate[1])
+      coordinate = Number(coordinate)
+      console.log("coordinate: " + coordinate);
+      console.log("player: " + player);
+      console.log("coordC: " + coordC);
+      console.log("coordR: " + coordR);
+
+      var feilSkip = 0;
+
+      if (player == "P1") {
+        var compSetup = battleShip1Arr
+      } else if (player == "P2") {
+        var compSetup = battleShip2Arr
+      }
+
+      console.log(battleShip1Arr)
+
+      // få den til å stopp hvis shipene kommer på samme sted
+      // få den til å stoppe når den går over grensen
+
+      if (player == "P1" && countNum1 < 6 && stop1 == 0) {
+        if (!retning) { // vertikalt
+          if (coordC + countNum1 - 1 > 9) {
+            countNum1--;
+          } else {
+
+            for (var i = 0; i < countNum1; i++) {
+              if (battleShip1Arr[coordC + i][coordR] == 0) {
+              } else {
+                feilSkip++;
+                console.log(feilSkip);
+              }
+            }
+
+            if (feilSkip == 0) {
+              for (var i = 0; i < countNum1; i++) {
+                battleShip1Arr[coordC + i][coordR] = 1
+                battleships1Setup[Number(String(coordR) + String(coordC)) + i].style.backgroundColor = "black"
+              }
+            }
+          }
+
+        } else if (retning) { // horisontalt
+          if (coordR + countNum1 - 1 > 9) {
+            countNum1--;
+          } else {
+
+            for (var i = 0; i < countNum1; i++) {
+              if (battleShip1Arr[coordC][coordR + i] == 0) {
+              } else {
+                feilSkip++;
+                console.log((String(coordC) + String(coordR + i)));
+                console.log(battleShip1Arr)
+                console.log("feilskip");
+              }
+            }
+
+            if (feilSkip == 0) {
+              for (var i = 0; i < countNum1; i++) {
+                battleShip1Arr[coordC][coordR + i] = 1
+                battleships1Setup[Number(String(coordR) + String(coordC)) + i * 10].style.backgroundColor = "black"
+              }
+            }
+          }
+        }
+      }
+
+
+        if (player == "P2" && countNum2 < 6 && stop2 == 0) {
+          if (!retning) { // vertikalt
+            if (coordC + countNum2 - 1 > 9) {
+              countNum2--;
+            } else {
+
+              for (var i = 0; i < countNum2; i++) {
+                if (battleShip2Arr[coordC + i][coordR] == 0) {
+                } else {
+                  feilSkip++;
+                  console.log(feilSkip);
+                }
+              }
+
+              if (feilSkip == 0) {
+                for (var i = 0; i < countNum2; i++) {
+                  battleShip2Arr[coordC + i][coordR] = 1
+                  battleships2Setup[Number(String(coordR) + String(coordC)) + i].style.backgroundColor = "black"
+                }
+              }
+            }
+
+          } else if (retning) { // horisontalt
+            if (coordR + countNum2 - 1 > 9) {
+              countNum2--;
+            } else {
+
+              for (var i = 0; i < countNum2; i++) {
+                if (battleShip2Arr[coordC][coordR + i] == 0) {
+                } else {
+                  feilSkip++;
+                  console.log((String(coordC) + String(coordR + i)));
+                  console.log(battleShip1Arr)
+                  console.log("feilskip");
+                }
+              }
+
+              if (feilSkip == 0) {
+                for (var i = 0; i < countNum2; i++) {
+                  battleShip2Arr[coordC][coordR + i] = 1
+                  battleships2Setup[Number(String(coordR) + String(coordC)) + i * 10].style.backgroundColor = "black"
+                }
+              }
+            }
+          }
+        }
+
+
+          if (feilSkip != 0) {
+            if (player == "P1") {
+              battleShip1Arr = compSetup
+              console.log(battleShip1Arr == compSetup);
+              console.log(battleShip1Arr);
+              console.log(compSetup);
+            } else if (player == "P2") {
+              battleShip2Arr = compSetup
+              console.log("feilSkip");
+            }
+          }
+
+
+          if (player == "P1" && feilSkip == 0) {
+            countNum1++;
+            if (countNum1 >= 6 || countNum1 == 1) {
+              countNum1 == 0
+              stop1++;
+              console.log(stop1);
+            }
+          } else if (player == "P2" && feilSkip == 0) {
+            countNum2++;
+            if (countNum2 >= 6 || countNum2 == 1) {
+              countNum2 == 0
+              stop2++;
+            }
+          }
+        }
+
+        // endrer retningen man kan velge for skipet sitt
+        function retningFun() {
+          if (retning) {
+            retning = false;
+            retningKnapp.innerHTML = "Vertikal"
+          } else {
+            retning = true;
+            retningKnapp.innerHTML = "Horisontal"
+          }
+        }
+
+
+        // funksjonen for å spille spillet
+        var folge=1
+        var hit1=0
+        var hit2=0
+        function battleshipsFun(e) {
+          var target = e.target
+          var coordinate = target.className.substring(0, 2);
+          var player = target.className.substring(3, 5);
+          var coordC = Number(coordinate[0])
+          var coordR = Number(coordinate[1])
+          coordinate = Number(coordinate)
+          console.log("coordinate: " + coordinate);
+          console.log("player: " + player);
+          console.log("coordC: " + coordC);
+          console.log("coordR: " + coordR);
+
+
+        //  if (stop1>0 && stop2>0) {
+
+            if (player=="P1" && folge==1) {
+
+              if (battleShip2Arr[coordC][coordR]==1) {
+                battleships1Attack[Number(String(coordR) + String(coordC))].style.backgroundColor="red"
+                hit1++;
+              } else {
+                battleships1Attack[Number(String(coordR) + String(coordC))].style.backgroundColor="blue"
+              }
+
+              folge=2
+
+            } else if (player=="P2" && folge==2) {
+
+              if (battleShip1Arr[coordC][coordR]==1) {
+                battleships2Attack[Number(String(coordR) + String(coordC))].style.backgroundColor="red"
+                hit2++;
+              } else {
+                battleships2Attack[Number(String(coordR) + String(coordC))].style.backgroundColor="blue"
+              }
+
+              folge=1;
+            }
+
+            if (hit1==15 || hit2==15) {
+              alert("vinner")
+            }
+
+          // } else {
+          //   alert("Alle spillerne må sette ut skipene sine")
+          // }
+     }
+
+
+  </script>
+</body>
+</html>

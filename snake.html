@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Snake</title>
+
+  <style media="screen">
+
+    body {
+      background-color: rgb(40, 40, 40);
+    }
+
+    canvas {
+        display: block;
+        margin: 0 auto;
+        background-color: lightgreen;
+        border: 1px solid black;
+      }
+
+    </style>
+</head>
+<body>
+
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <script type="text/javascript">
+    var bodyEl = document.querySelector("body")
+    bodyEl.addEventListener("keydown", dirUpdt);
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+
+    var lengde = 40;
+    var tid = 300;
+
+    // NOTE: lager grid og slange
+    for (var i = 1; i < canvas.width / lengde; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * lengde, 0);
+      ctx.lineTo(i * lengde, canvas.height);
+      ctx.stroke();
+    }
+    for (var i = 1; i < canvas.width / lengde; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, i * lengde);
+      ctx.lineTo(canvas.width, i * lengde);
+      ctx.stroke();
+    }
+    for (var i = 3; i > 0; i--) {
+      ctx.fillRect(lengde * (i + 1), lengde, lengde, lengde);
+    }
+
+
+    // NOTE: endrer retning til slangen
+    var arrayDir = ["", "", ""];
+    var actDir = ""
+    var startCheck = 0;
+    var stopCheck = 0;
+
+    function dirUpdt(e) {
+
+      var knapp = event.keyCode
+      var check = 0
+
+      if (knapp == "38") {
+        if (arrayDir[0] != "down") {
+          actDir = "up"
+          check++
+        }
+      } else if (knapp == "39") {
+        if (arrayDir[0] != "left") {
+          actDir = "right"
+          check++
+        }
+      } else if (knapp == "37") {
+        if (arrayDir[0] != "right") {
+          actDir = "left"
+          check++
+        }
+      } else if (knapp == "40") {
+        if (arrayDir[0] != "up") {
+          actDir = "down"
+          check++
+        }
+      }
+
+      if (check != 0 && startCheck == 0) {
+        if (actDir == "right") {
+          for (var i = 0; i < arrayDir.length; i++) {
+            arrayDir[i] = actDir
+          }
+        } else if (actDir == "down") {
+          for (var i = 0; i < arrayDir.length; i++) {
+            arrayDir[i] = "right"
+          }
+          arrayDir[0] = actDir
+
+        } else if (actDir == "up") {
+          for (var i = 0; i < arrayDir.length; i++) {
+            arrayDir[i] = "right"
+          }
+          arrayDir[0] = actDir
+        }
+        animationId = setInterval(animate, tid);
+        startCheck++;
+      }
+    }
+
+
+    // NOTE: lager dynamiske objekter som vi bruker for spillet
+    class SnakeGame {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+
+      draw() {
+        ctx.fillRect(this.x, this.y, lengde, lengde);
+      }
+    }
+
+    class Snake extends SnakeGame {
+      constructor(x, y) {
+        super(x, y);
+      }
+
+      move(retning) {
+        if (retning == "up") {
+          this.y -= lengde;
+        } else if (retning == "right") {
+          this.x += lengde;
+        } else if (retning == "down") {
+          this.y += lengde;
+        } else if (retning == "left") {
+          this.x -= lengde;
+        }
+      }
+    }
+
+    class Treat extends SnakeGame {
+      constructor(x, y) {
+        super(x, y);
+      }
+    }
+
+    var snakeArr = []
+    for (var i = 3; i > 0; i--) {
+      var snake = new Snake(lengde * (i + 1), lengde);
+      snakeArr.push(snake)
+    }
+
+    treat = new Treat((Math.ceil(Math.random() * (canvas.width / lengde - 1))) * lengde, Math.ceil(Math.random() * (canvas.height / lengde - 1)) * lengde);
+
+    var stopAni = 0;
+    var animationId;
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var i = 1; i < canvas.width / lengde; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * lengde, 0);
+        ctx.lineTo(i * lengde, canvas.height);
+        ctx.stroke();
+      }
+      for (var i = 1; i < canvas.width / lengde; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * lengde);
+        ctx.lineTo(canvas.width, i * lengde);
+        ctx.stroke();
+      }
+
+      treat.draw();
+
+      for (var i = 0; i < snakeArr.length; i++) {
+
+        if (i == 0) {
+          snakeArr[0].move(arrayDir[0])
+          if (snakeArr[0].x < 0 || snakeArr[0].y < 0 || snakeArr[0].x > canvas.width - lengde || snakeArr[0].y > canvas.height - lengde) {
+            clearInterval(animationId);
+
+          }
+          if (snakeArr[0].x == treat.x && snakeArr[0].y == treat.y) {
+
+            for (var j = 0; j < 2; j++) {
+              if (arrayDir[arrayDir.length - 1] == "down") {
+                var snake = new Snake(snakeArr[snakeArr.length - 1].x, snakeArr[snakeArr.length - 1].y - lengde);
+              } else if (arrayDir[arrayDir.length - 1] == "up") {
+                var snake = new Snake(snakeArr[snakeArr.length - 1].x, snakeArr[snakeArr.length - 1].y + lengde);
+              } else if (arrayDir[arrayDir.length - 1] == "right") {
+                var snake = new Snake(snakeArr[snakeArr.length - 1].x - lengde, snakeArr[snakeArr.length - 1].y);
+              } else if (arrayDir[arrayDir.length - 1] == "left") {
+                var snake = new Snake(snakeArr[snakeArr.length - 1].x + lengde, snakeArr[snakeArr.length - 1].y);
+              }
+
+              // snake.move(arrayDir[arrayDir.length-1])
+              snake.draw()
+              snakeArr.push(snake)
+              arrayDir.push(arrayDir[arrayDir.length - 1])
+            }
+            for (var k = 1; k < snakeArr.length; k++) {
+              if (snakeArr[0].x == snakeArr[k].x && snakeArr[0].y == snakeArr[k].y) {
+                clearInterval(animationId);
+              }
+            }
+            treat = new Treat((Math.ceil(Math.random() * (canvas.width / lengde - 1))) * lengde, Math.ceil(Math.random() * (canvas.height / lengde - 1)) * lengde);
+          }
+
+          for (var j = 1; j < snakeArr.length; j++) {
+            if (snakeArr[0].x == snakeArr[j].x && snakeArr[0].y == snakeArr[j].y) {
+              clearInterval(animationId);
+            }
+          }
+
+        } else {
+          snakeArr[i].move(arrayDir[i])
+        }
+        snakeArr[i].draw()
+      }
+      arrayDir.pop()
+      arrayDir.unshift(actDir)
+    }
+
+
+  </script>
+</body>
+</html>

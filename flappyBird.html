@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Flappy bird</title>
+
+    <style media="screen">
+
+      canvas {
+          display: block;
+          margin: 0 auto;
+          background-color: skyblue;
+          border: 1px solid black;
+        }
+
+      </style>
+
+  </head>
+  <body>
+
+    <canvas id="canvas" width="800" height="500"></canvas>
+
+
+    <script type="text/javascript">
+
+
+    var canvas = document.querySelector("canvas");
+    var ctx = canvas.getContext("2d");
+
+    var poeng=0;
+
+      class Player {
+        constructor(x,y, yFart) {
+          this.x=x;
+          this.y=y
+          this.yFart=yFart;
+        }
+
+        move() {
+          this.yFart+=0.2;
+          this.y+=this.yFart;
+        }
+
+        draw() {
+          ctx.fillRect(this.x, this.y, 50, 50);
+        }
+
+      }
+
+      class Hurdle {
+        constructor(x,y, height) {
+          this.x=x
+          this.y=y
+          this.height=height
+        }
+
+        move() {
+          this.x-=4
+        }
+
+        draw() {
+          ctx.fillRect(this.x, this.y, bredde, this.height);
+        }
+      }
+
+    var bredde=50;
+    var minHeight=10;
+    var opening=150;
+
+    var hurdleArr=[];
+    var bird=new Player(200,100,0);
+    ctx.fillRect(200, 100, 50, 50);
+
+
+    var animationId;
+    var stopAni=0;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      bird.draw()
+      bird.move()
+
+      for (var i = 0; i < hurdleArr.length; i++) {
+          hurdleArr[i].draw()
+          hurdleArr[i].move()
+      }
+
+      for (var i = 0; i < hurdleArr.length; i++) {
+        if ((i==0 || i%2==0) && bird.x+40>hurdleArr[i].x && bird.x<hurdleArr[i].x+bredde && bird.y+5<hurdleArr[i].height) {
+          stopAni++;
+          console.log("hei");
+        } else if ((i!=0 || i%2!=0) && bird.x+40>hurdleArr[i].x && bird.x<hurdleArr[i].x+bredde && bird.y+40>canvas.height-hurdleArr[i].height) {
+          stopAni++;
+          console.log(bird.y+40);
+          console.log(canvas.height-hurdleArr[i].y);
+        }
+
+      }
+
+      if (hurdleArr[0].x+5<0) {
+        poeng++;
+        hurdleArr.shift()
+        hurdleArr.shift()
+      }
+
+
+
+      if (bird.y<-2 || bird.y>canvas.height-38) {
+        stopAni++;
+      }
+
+      if (stopAni==0) {
+        animationId=requestAnimationFrame(animate)
+      } else {
+        animationId=cancelAnimationFrame(animate)
+        console.log(poeng);
+      }
+    }
+
+
+    var bodyEl=document.querySelector("body")
+    bodyEl.addEventListener("keydown", flappyFun)
+
+    function flappyFun() {
+      console.log("hei");
+      bird.yFart-=5;
+    }
+
+
+    var start=0;
+    function newHurdle() {
+      var randNum=canvas.height-opening-2*minHeight;
+      var random=Math.ceil(Math.random()*randNum);
+      var heightt=minHeight+random;
+      var heightb=minHeight+randNum-random;
+      var startB=heightt+opening;
+      var hurdleT=new Hurdle(canvas.width, 0, heightt)
+      var hurdleB=new Hurdle(canvas.width, canvas.height-heightb, heightb)
+      hurdleArr.push(hurdleT)
+      hurdleArr.push(hurdleB)
+      start++;
+
+      if (start==1) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+    newHurdle()
+    setInterval(newHurdle, 1500)
+
+    </script>
+  </body>
+</html>
